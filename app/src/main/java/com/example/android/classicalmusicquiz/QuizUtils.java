@@ -19,6 +19,7 @@ package com.example.android.classicalmusicquiz;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -132,6 +133,7 @@ class QuizUtils {
     static void endGame(Context context){
         Intent endGame = new Intent(context, MainActivity.class);
         endGame.putExtra(GAME_FINISHED, true);
+        endGame.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         context.startActivity(endGame);
     }
 
