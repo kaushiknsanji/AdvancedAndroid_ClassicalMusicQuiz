@@ -132,6 +132,7 @@ class QuizUtils {
     static void endGame(Context context){
         Intent endGame = new Intent(context, MainActivity.class);
         endGame.putExtra(GAME_FINISHED, true);
+        endGame.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         context.startActivity(endGame);
     }
 
