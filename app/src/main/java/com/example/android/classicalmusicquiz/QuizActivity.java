@@ -30,15 +30,13 @@ import android.widget.Button;
 import android.widget.Toast;
 
 import com.google.android.exoplayer2.DefaultLoadControl;
+import com.google.android.exoplayer2.DefaultRenderersFactory;
 import com.google.android.exoplayer2.ExoPlayerFactory;
-import com.google.android.exoplayer2.LoadControl;
 import com.google.android.exoplayer2.SimpleExoPlayer;
-import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory;
 import com.google.android.exoplayer2.source.ExtractorMediaSource;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
-import com.google.android.exoplayer2.trackselection.TrackSelector;
-import com.google.android.exoplayer2.ui.SimpleExoPlayerView;
+import com.google.android.exoplayer2.ui.PlayerView;
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.util.Util;
 
@@ -56,7 +54,7 @@ public class QuizActivity extends AppCompatActivity implements View.OnClickListe
     private int mHighScore;
     private Button[] mButtons;
     private SimpleExoPlayer mExoPlayer;
-    private SimpleExoPlayerView mPlayerView;
+    private PlayerView mPlayerView;
 
 
     @Override
@@ -66,9 +64,9 @@ public class QuizActivity extends AppCompatActivity implements View.OnClickListe
 
 
         // Initialize the player view.
-        mPlayerView = (SimpleExoPlayerView) findViewById(R.id.playerView);
+        mPlayerView = findViewById(R.id.playerView);
 
-        // TODO (1): Create a layout file called exo_playback_control_view to override the playback control layout.
+        // COMPLETED (1): Create a layout file called exo_playback_control_view to override the playback control layout.
 
         boolean isNewGame = !getIntent().hasExtra(REMAINING_SONGS_KEY);
 
@@ -142,16 +140,24 @@ public class QuizActivity extends AppCompatActivity implements View.OnClickListe
      */
     private void initializePlayer(Uri mediaUri) {
         if (mExoPlayer == null) {
-            // Create an instance of the ExoPlayer.
-            TrackSelector trackSelector = new DefaultTrackSelector();
-            LoadControl loadControl = new DefaultLoadControl();
-            mExoPlayer = ExoPlayerFactory.newSimpleInstance(this, trackSelector, loadControl);
+            //Create an instance of the ExoPlayer using the Default TrackSelector and LoadControl
+            mExoPlayer = ExoPlayerFactory.newSimpleInstance(
+                    new DefaultRenderersFactory(this),
+                    new DefaultTrackSelector(),
+                    new DefaultLoadControl()
+
+            );
+            //Connect the ExoPlayer View to the ExoPlayer
             mPlayerView.setPlayer(mExoPlayer);
-            // Prepare the MediaSource.
-            String userAgent = Util.getUserAgent(this, "ClassicalMusicQuiz");
-            MediaSource mediaSource = new ExtractorMediaSource(mediaUri, new DefaultDataSourceFactory(
-                    this, userAgent), new DefaultExtractorsFactory(), null, null);
+            //Initialize the MediaSource that loads data from the Media URI
+            MediaSource mediaSource = new ExtractorMediaSource.Factory(
+                    //Factory to read the media
+                    new DefaultDataSourceFactory(this,
+                            Util.getUserAgent(this, "ClassicalMusicQuiz")))
+                    .createMediaSource(mediaUri);
+            //Prepare the MediaSource
             mExoPlayer.prepare(mediaSource);
+            //Start Playing when ready
             mExoPlayer.setPlayWhenReady(true);
         }
     }
