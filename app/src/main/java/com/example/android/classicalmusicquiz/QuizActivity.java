@@ -25,27 +25,30 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
 import com.google.android.exoplayer2.DefaultLoadControl;
+import com.google.android.exoplayer2.DefaultRenderersFactory;
+import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.ExoPlayerFactory;
-import com.google.android.exoplayer2.LoadControl;
+import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.SimpleExoPlayer;
-import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory;
 import com.google.android.exoplayer2.source.ExtractorMediaSource;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
-import com.google.android.exoplayer2.trackselection.TrackSelector;
-import com.google.android.exoplayer2.ui.SimpleExoPlayerView;
+import com.google.android.exoplayer2.ui.PlayerView;
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.util.Util;
 
 import java.util.ArrayList;
 
-// TODO (1): Have this Activity implement ExoPlayer.EventListener and add the required methods.
+// COMPLETED (1): Have this Activity implement ExoPlayer.EventListener and add the required methods.
 public class QuizActivity extends AppCompatActivity implements View.OnClickListener {
+
+    private static final String LOG_TAG = QuizActivity.class.getSimpleName();
 
     private static final int CORRECT_ANSWER_DELAY_MILLIS = 1000;
     private static final String REMAINING_SONGS_KEY = "remaining_songs";
@@ -57,7 +60,7 @@ public class QuizActivity extends AppCompatActivity implements View.OnClickListe
     private int mHighScore;
     private Button[] mButtons;
     private SimpleExoPlayer mExoPlayer;
-    private SimpleExoPlayerView mPlayerView;
+    private PlayerView mPlayerView;
 
 
     @Override
@@ -67,7 +70,7 @@ public class QuizActivity extends AppCompatActivity implements View.OnClickListe
 
 
         // Initialize the player view.
-        mPlayerView = (SimpleExoPlayerView) findViewById(R.id.playerView);
+        mPlayerView = findViewById(R.id.playerView);
 
 
         boolean isNewGame = !getIntent().hasExtra(REMAINING_SONGS_KEY);
@@ -143,20 +146,31 @@ public class QuizActivity extends AppCompatActivity implements View.OnClickListe
      */
     private void initializePlayer(Uri mediaUri) {
         if (mExoPlayer == null) {
-            // Create an instance of the ExoPlayer.
-            TrackSelector trackSelector = new DefaultTrackSelector();
-            LoadControl loadControl = new DefaultLoadControl();
-            mExoPlayer = ExoPlayerFactory.newSimpleInstance(this, trackSelector, loadControl);
+            //Create an instance of the ExoPlayer using the Default TrackSelector and LoadControl
+            mExoPlayer = ExoPlayerFactory.newSimpleInstance(
+                    new DefaultRenderersFactory(this),
+                    new DefaultTrackSelector(),
+                    new DefaultLoadControl()
+
+            );
+            //Connect the ExoPlayer View to the ExoPlayer
             mPlayerView.setPlayer(mExoPlayer);
 
-            // TODO (2): Set the ExoPlayer.EventListener to this activity
-            
-            // Prepare the MediaSource.
-            String userAgent = Util.getUserAgent(this, "ClassicalMusicQuiz");
-            MediaSource mediaSource = new ExtractorMediaSource(mediaUri, new DefaultDataSourceFactory(
-                    this, userAgent), new DefaultExtractorsFactory(), null, null);
+
+            // COMPLETED (2): Set the ExoPlayer.EventListener to this activity
+            mExoPlayer.addListener(mExoPlayerEventListener);
+
+            //Initialize the MediaSource that loads data from the Media URI
+            MediaSource mediaSource = new ExtractorMediaSource.Factory(
+                    //Factory to read the media
+                    new DefaultDataSourceFactory(this,
+                            Util.getUserAgent(this, "ClassicalMusicQuiz")))
+                    .createMediaSource(mediaUri);
+            //Prepare the MediaSource
             mExoPlayer.prepare(mediaSource);
+            //Start Playing when ready
             mExoPlayer.setPlayWhenReady(true);
+
         }
     }
 
@@ -260,5 +274,26 @@ public class QuizActivity extends AppCompatActivity implements View.OnClickListe
         releasePlayer();
     }
 
-    // TODO (3): Add conditional logging statements to the onPlayerStateChanged() method that log when ExoPlayer is playing or paused.
+    // COMPLETED (3): Add conditional logging statements to the onPlayerStateChanged() method that log when ExoPlayer is playing or paused.
+
+    /**
+     * A listener that listens to the ExoPlayer state changes.
+     */
+    private ExoPlayer.DefaultEventListener mExoPlayerEventListener = new Player.DefaultEventListener() {
+        /**
+         * Called when the value returned from either {@link Player#getPlayWhenReady()} or
+         * {@link Player#getPlaybackState()} changes.
+         *
+         * @param playWhenReady Whether playback will proceed when ready.
+         * @param playbackState One of the {@code STATE} constants.
+         */
+        @Override
+        public void onPlayerStateChanged(boolean playWhenReady, int playbackState) {
+            if(playWhenReady && playbackState == Player.STATE_READY){
+                Log.i(LOG_TAG, "onPlayerStateChanged: We are playing");
+            } else if(playbackState == Player.STATE_READY){
+                Log.i(LOG_TAG, "onPlayerStateChanged: We are paused");
+            }
+        }
+    };
 }
