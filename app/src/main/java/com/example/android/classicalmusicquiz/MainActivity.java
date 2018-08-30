@@ -16,6 +16,8 @@
 
 package com.example.android.classicalmusicquiz;
 
+import android.app.NotificationManager;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -65,5 +67,17 @@ public class MainActivity extends AppCompatActivity {
     public void newGame(View view) {
         Intent quizIntent = new Intent(this, QuizActivity.class);
         startActivity(quizIntent);
+    }
+
+    @Override
+    protected void onDestroy() {
+        //Cleanup any notifications if present at the time of quitting
+        //Retrieving the instance of NotificationManager
+        NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        if(notificationManager != null){
+            notificationManager.cancelAll();
+
+        }
+        super.onDestroy();
     }
 }
