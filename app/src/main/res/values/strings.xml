@@ -22,4 +22,9 @@
     <string name="notification_text">Press play to hear the piece!</string>
     <string name="sample_list_load_error">Error loading one or more samples!</string>
     <string name="sample_not_found_error">Sample not found!</string>
+
+    <string name="notification_action_restart_play">Replay</string>
+    <string name="notification_content_title">Can you guess the composer?</string>
+    <string name="notification_content_text">Press play to hear the piece!</string>
+    <string name="notification_channel_name_media">Media</string>
 </resources>
